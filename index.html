@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>吉他 / 烏克麗麗和弦指板訓練器 v1.1</title>
+<title>吉他 / 烏克麗麗和弦指板訓練器 v1.2</title>
 <style>
 :root {
   --root:#d62828;
@@ -111,7 +111,7 @@ th { background: #eee; position: sticky; top: 0; z-index: 2; }
 </style>
 </head>
 <body>
-<h1>吉他 / 烏克麗麗和弦指板訓練器 v1.1</h1>
+<h1>吉他 / 烏克麗麗和弦指板訓練器 v1.2</h1>
 
 <div class="controls">
   <div class="control-group"><label for="root">Key</label><select id="root"></select></div>
@@ -321,6 +321,11 @@ function normalizeShape(shape) {
   shape.minFret = pressed.length ? Math.min(...pressed) : 0;
   shape.maxFret = pressed.length ? Math.max(...pressed) : 0;
   shape.span = pressed.length ? shape.maxFret - shape.minFret : 0;
+  // Stable id prevents the wrong shape from being kept after rebuilding the list.
+  shape.id = shape.name + '|' + shape.notes
+    .map(n => `${n.stringNo}:${n.fret}:${n.degree}`)
+    .sort()
+    .join('|');
   return shape;
 }
 function buildLinearShapes(rootNote, groups, tagList, maxStretch=5) {
@@ -456,7 +461,16 @@ function getAllShapes() {
   const pos = document.getElementById('position').value;
   if (pos !== "all") {
     const p = Number(pos);
-    shapes = shapes.filter(s => s.minFret >= p && s.minFret <= p + 4);
+    const low = p;
+    const high = p + 4;
+    shapes = shapes.filter(s => {
+      const frets = s.notes.map(n => n.fret);
+      const pressed = frets.filter(f => f > 0);
+      if (p === 0) {
+        return frets.every(f => f >= 0 && f <= high);
+      }
+      return pressed.length > 0 && pressed.every(f => f >= low && f <= high);
+    });
   }
   shapes.sort((a,b) => a.minFret - b.minFret || a.maxFret - b.maxFret || a.name.localeCompare(b.name));
   return shapes;
@@ -466,7 +480,7 @@ function updateShapeSelect(shapes, preserve=true) {
   const oldValue = preserve ? shapeSelect.value : "all";
   shapeSelect.innerHTML = `<option value="all">全部指型</option>`;
   shapes.forEach((s, i) => {
-    shapeSelect.innerHTML += `<option value="${i}">${i + 1}. ${s.name}｜${s.minFret}-${s.maxFret}格</option>`;
+    shapeSelect.innerHTML += `<option value="${encodeURIComponent(s.id)}">${i + 1}. ${s.name}｜${s.minFret}-${s.maxFret}格</option>`;
   });
   if (preserve && [...shapeSelect.options].some(o => o.value === oldValue)) shapeSelect.value = oldValue;
   else shapeSelect.value = "all";
@@ -491,7 +505,8 @@ function render(options={}) {
   const shapeSelect = document.getElementById('shapeSelect');
   let displayShapes = shapes;
   if (shapeSelect.value !== "all") {
-    const selected = shapes[Number(shapeSelect.value)];
+    const selectedId = decodeURIComponent(shapeSelect.value);
+    const selected = shapes.find(s => s.id === selectedId);
     displayShapes = selected ? [selected] : [];
   }
   const shapeMap = {};
@@ -518,7 +533,19 @@ function render(options={}) {
       const note = getFretNote(str.note, fret);
       if (modeValue === "chordTone") {
         const match = chordNotes.find(x => x.note === note);
-        if (match) {
+        const selectedRootString = document.getElementById('rootString').value;
+        let showChordTone = !!match;
+
+        // When a root/position string is selected, treat it as the bass/root string:
+        // lower strings are hidden; the selected string only shows R; higher strings show chord tones.
+        if (match && selectedRootString !== "all") {
+          const rootS = Number(selectedRootString);
+          if (str.stringNo > rootS) showChordTone = false;
+          else if (str.stringNo === rootS) showChordTone = match.degree === "R";
+          else showChordTone = true;
+        }
+
+        if (match && showChordTone) {
           html += `<td><span class="hit ${getClass(match.degree)}">${labelText(note, match.degree)}</span></td>`;
         } else html += `<td></td>`;
       } else {
@@ -533,16 +560,26 @@ function render(options={}) {
   html += `</table>`;
   document.getElementById('fretboard').innerHTML = html;
 }
+function clearDisplay() {
+  document.getElementById('chordInfo').innerHTML = '';
+  document.getElementById('fretboard').innerHTML = '';
+  document.getElementById('shapeSelect').innerHTML = `<option value="all">全部指型</option>`;
+}
 function forceRefresh() {
   const currentShape = document.getElementById('shapeSelect').value;
+  clearDisplay();
+
+  // Rebuild once from a clean state, using the current controls.
   render({ preserveShape:false });
+
+  // If the same stable shape still exists under the current controls, restore it and render again.
   const shapeSelect = document.getElementById('shapeSelect');
-  if ([...shapeSelect.options].some(o => o.value === currentShape)) {
+  if (currentShape !== "all" && [...shapeSelect.options].some(o => o.value === currentShape)) {
     shapeSelect.value = currentShape;
     render({ preserveShape:true });
   }
 }
-function safeRenderResetShape() { render({ preserveShape:false }); }
+function safeRenderResetShape() { clearDisplay(); render({ preserveShape:false }); }
 function safeRenderKeepShape() { render({ preserveShape:true }); }
 populate();
 document.getElementById('instrument').addEventListener('change', () => { updateTuningOptions(); updateRootStringOptions(); render({ preserveShape:false }); });
@@ -553,6 +590,7 @@ render({ preserveShape:false });
 </script>
 </body>
 </html>
+
 
 </body>
 </html>
