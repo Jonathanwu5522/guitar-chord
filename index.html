@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>吉他和弦指板訓練器 v1.0</title>
+<title>吉他 / 烏克麗麗和弦指板訓練器 v1.1</title>
 <style>
 :root {
   --root:#d62828;
@@ -111,10 +111,14 @@ th { background: #eee; position: sticky; top: 0; z-index: 2; }
 </style>
 </head>
 <body>
-<h1>吉他和弦指板訓練器 v1.0</h1>
+<h1>吉他 / 烏克麗麗和弦指板訓練器 v1.1</h1>
 
 <div class="controls">
   <div class="control-group"><label for="root">Key</label><select id="root"></select></div>
+  <div class="control-group"><label for="instrument">樂器</label><select id="instrument">
+    <option value="guitar">吉他 Guitar</option>
+    <option value="ukulele">烏克麗麗 Ukulele</option>
+  </select></div>
   <div class="control-group"><label for="tuning">Tuning</label><select id="tuning"></select></div>
   <div class="control-group"><label for="mode">模式</label><select id="mode">
     <option value="chordTone">Chord Tone 全指板和弦音</option>
@@ -151,14 +155,30 @@ th { background: #eee; position: sticky; top: 0; z-index: 2; }
 <script>
 const notes = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 const roots = ["C","C# / Db","D","D# / Eb","E","F","F# / Gb","G","G# / Ab","A","A# / Bb","B"];
-const tunings = {
-  "Standard 標準 EADGBE": ["E","A","D","G","B","E"],
-  "Drop D DADGBE": ["D","A","D","G","B","E"],
-  "Open G DGDGBD": ["D","G","D","G","B","D"],
-  "Open D DADF#AD": ["D","A","D","F#","A","D"],
-  "Open A EAEAC#E": ["E","A","E","A","C#","E"],
-  "Open E EBEG#BE": ["E","B","E","G#","B","E"]
+const tuningPresets = {
+  guitar: {
+    "Standard Guitar EADGBE": ["E","A","D","G","B","E"],
+    "Drop D DADGBE": ["D","A","D","G","B","E"],
+    "Open G DGDGBD": ["D","G","D","G","B","D"],
+    "Open D DADF#AD": ["D","A","D","F#","A","D"],
+    "Open A EAEAC#E": ["E","A","E","A","C#","E"],
+    "Open E EBEG#BE": ["E","B","E","G#","B","E"]
+  },
+  ukulele: {
+    "Standard Ukulele GCEA": ["G","C","E","A"],
+    "Low G Ukulele GCEA": ["G","C","E","A"],
+    "D Tuning ADF#B": ["A","D","F#","B"],
+    "Baritone Ukulele DGBE": ["D","G","B","E"]
+  }
 };
+function currentInstrument(){ return document.getElementById('instrument')?.value || 'guitar'; }
+function currentTunings(){ return tuningPresets[currentInstrument()] || tuningPresets.guitar; }
+function currentTuningNotes(){
+  const t = document.getElementById('tuning').value;
+  const list = currentTunings();
+  return list[t] || Object.values(list)[0];
+}
+function maxStringNo(){ return currentTuningNotes().length; }
 const chordTypes = {
   "Major 大三和弦": [0,4,7],
   "Minor 小三和弦": [0,3,7],
@@ -223,15 +243,15 @@ function getNoteFrom(root, interval){ return notes[(noteIndex(root) + interval) 
 function getFretNote(openNote, fret){ return notes[(noteIndex(openNote) + fret) % 12]; }
 function getDegree(interval){ return degreeNames[interval] || degreeNames[((interval % 12) + 12) % 12] || "?"; }
 function getGuitarStrings() {
-  const lowToHigh = tunings[document.getElementById('tuning').value];
-  return [
-    { stringNo:1, name:`1弦 ${lowToHigh[5]}`, note:lowToHigh[5] },
-    { stringNo:2, name:`2弦 ${lowToHigh[4]}`, note:lowToHigh[4] },
-    { stringNo:3, name:`3弦 ${lowToHigh[3]}`, note:lowToHigh[3] },
-    { stringNo:4, name:`4弦 ${lowToHigh[2]}`, note:lowToHigh[2] },
-    { stringNo:5, name:`5弦 ${lowToHigh[1]}`, note:lowToHigh[1] },
-    { stringNo:6, name:`6弦 ${lowToHigh[0]}`, note:lowToHigh[0] }
-  ];
+  // Tuning array is ordered from lowest numbered bass-side string to 1st string.
+  // Guitar: [6,5,4,3,2,1]. Ukulele: [4,3,2,1].
+  const lowToHigh = currentTuningNotes();
+  const result = [];
+  for (let i = lowToHigh.length - 1; i >= 0; i--) {
+    const stringNo = lowToHigh.length - i;
+    result.push({ stringNo, name:`${stringNo}弦 ${lowToHigh[i]}`, note:lowToHigh[i] });
+  }
+  return result;
 }
 function getStringData(stringNo){ return getGuitarStrings().find(s => s.stringNo === stringNo); }
 function getClass(degree) {
@@ -256,9 +276,28 @@ function populate() {
   const chordType = document.getElementById('chordType');
   const position = document.getElementById('position');
   roots.forEach(r => root.innerHTML += `<option value="${r}">${r}</option>`);
-  Object.keys(tunings).forEach(t => tuning.innerHTML += `<option value="${t}">${t}</option>`);
+  updateTuningOptions();
+  updateRootStringOptions();
   Object.keys(chordTypes).forEach(c => chordType.innerHTML += `<option value="${c}">${c}</option>`);
   for (let i = 0; i <= 24; i++) position.innerHTML += `<option value="${i}">第 ${i} 把位</option>`;
+}
+function updateTuningOptions() {
+  const tuning = document.getElementById('tuning');
+  const old = tuning.value;
+  tuning.innerHTML = "";
+  Object.keys(currentTunings()).forEach(t => tuning.innerHTML += `<option value="${t}">${t}</option>`);
+  if ([...tuning.options].some(o => o.value === old)) tuning.value = old;
+}
+function updateRootStringOptions() {
+  const rootString = document.getElementById('rootString');
+  const old = rootString.value;
+  const maxS = maxStringNo();
+  rootString.innerHTML = `<option value="all">全部</option>`;
+  for (let s = maxS; s >= 3; s--) {
+    rootString.innerHTML += `<option value="${s}">第${s}弦</option>`;
+  }
+  if ([...rootString.options].some(o => o.value === old)) rootString.value = old;
+  else rootString.value = "all";
 }
 function findFretsOnString(openNote, targetNote) {
   const frets = [];
@@ -335,11 +374,16 @@ function removeDuplicateShapes(shapes) {
     return true;
   });
 }
+function availableLowStrings(groupSize) {
+  const arr = [];
+  for (let s = maxStringNo(); s >= groupSize; s--) arr.push(s);
+  return arr;
+}
 function buildTriadShapes(rootNote, intervals, rootStringValue) {
   const d = triadDegrees(intervals);
   if (!d) return [];
-  const lows = rootStringValue === "all" ? [6,5,4,3] : [Number(rootStringValue)];
-  const groups = lows.map(r => [r,r-1,r-2]).filter(g => g.every(x => x >= 1));
+  const lows = rootStringValue === "all" ? availableLowStrings(3) : [Number(rootStringValue)];
+  const groups = lows.map(r => [r,r-1,r-2]).filter(g => g.every(x => x >= 1 && x <= maxStringNo()));
   return buildLinearShapes(rootNote, groups, [
     { short:"R.Pos", order:[d[0],d[1],d[2]] },
     { short:"1st", order:[d[1],d[2],d[0]] },
@@ -349,8 +393,8 @@ function buildTriadShapes(rootNote, intervals, rootStringValue) {
 function buildShellShapes(rootNote, intervals, rootStringValue) {
   const d = shellDegrees(intervals);
   if (!d) return [];
-  const lows = rootStringValue === "all" ? [6,5,4] : [Number(rootStringValue)];
-  const groups = lows.map(r => [r,r-1,r-2]).filter(g => g.every(x => x >= 1));
+  const lows = rootStringValue === "all" ? availableLowStrings(3) : [Number(rootStringValue)];
+  const groups = lows.map(r => [r,r-1,r-2]).filter(g => g.every(x => x >= 1 && x <= maxStringNo()));
   return buildLinearShapes(rootNote, groups, [
     { short:"Shell 1", order:[d[0],d[1],d[2]] },
     { short:"Shell 2", order:[d[0],d[2],d[1]] }
@@ -374,8 +418,8 @@ function buildDropShapes(rootNote, intervals, type, rootStringValue) {
   if (type === "drop2") order = [base[0], base[2], base[1], base[3]];
   if (type === "drop3") order = [base[1], base[0], base[2], base[3]];
   if (type === "drop24") order = [base[2], base[0], base[1], base[3]];
-  const lows = rootStringValue === "all" ? [6,5,4] : [Number(rootStringValue)];
-  const groups = lows.map(r => [r,r-1,r-2,r-3]).filter(g => g.every(x => x >= 1));
+  const lows = rootStringValue === "all" ? availableLowStrings(4) : [Number(rootStringValue)];
+  const groups = lows.map(r => [r,r-1,r-2,r-3]).filter(g => g.every(x => x >= 1 && x <= maxStringNo()));
   return buildLinearShapes(rootNote, groups, [{ short:type.toUpperCase(), order }], 7);
 }
 function buildCagedShapes(rootNote, intervals, rootStringValue) {
@@ -456,6 +500,7 @@ function render(options={}) {
   const modeText = document.getElementById('mode').options[document.getElementById('mode').selectedIndex].text;
   chordInfo.innerHTML =
     `<b>${rootNote} ${chordName}</b><br>` +
+    `樂器：${document.getElementById('instrument').options[document.getElementById('instrument').selectedIndex].text}<br>` +
     `Tuning：${document.getElementById('tuning').value}<br>` +
     `模式：${modeText}<br>` +
     `音名：${chordNotes.map(x => x.note).join('、')}<br>` +
@@ -500,10 +545,14 @@ function forceRefresh() {
 function safeRenderResetShape() { render({ preserveShape:false }); }
 function safeRenderKeepShape() { render({ preserveShape:true }); }
 populate();
-['root','tuning','mode','rootString','position','chordType'].forEach(id => document.getElementById(id).addEventListener('change', safeRenderResetShape));
+document.getElementById('instrument').addEventListener('change', () => { updateTuningOptions(); updateRootStringOptions(); render({ preserveShape:false }); });
+['root','tuning','mode','rootString','position','chordType'].forEach(id => document.getElementById(id).addEventListener('change', () => { if (id === 'tuning') updateRootStringOptions(); safeRenderResetShape(); }));
 document.getElementById('displayMode').addEventListener('change', safeRenderKeepShape);
 document.getElementById('shapeSelect').addEventListener('change', safeRenderKeepShape);
 render({ preserveShape:false });
 </script>
+</body>
+</html>
+
 </body>
 </html>
