@@ -2,79 +2,163 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>吉他和弦指板訓練器</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>吉他和弦指板訓練器 v1.0</title>
 <style>
-body { font-family: Arial, "Microsoft JhengHei"; padding:20px; }
-select { font-size:18px; padding:6px; margin:5px; }
-.info { margin:15px 0; font-size:18px; line-height:1.6; }
-.fretboard { overflow-x:auto; border:1px solid #ccc; padding:10px; }
-table { border-collapse:collapse; }
+:root {
+  --root:#d62828;
+  --third:#2a9d8f;
+  --fifth:#457b9d;
+  --seventh:#9d4edd;
+  --extension:#f77f00;
+  --dark:#222;
+  --line:#aaa;
+  --bg:#fff;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: Arial, "Microsoft JhengHei", sans-serif;
+  padding: 18px;
+  background: var(--bg);
+  color: #111;
+}
+h1 { margin: 0 0 14px; font-size: 26px; }
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.control-group { display: inline-flex; align-items: center; gap: 4px; }
+label { font-weight: bold; }
+select, button {
+  font-size: 15px;
+  padding: 6px 8px;
+  border: 1px solid #999;
+  border-radius: 6px;
+  background: white;
+}
+button { cursor: pointer; }
+button:hover { background:#f0f0f0; }
+.info {
+  margin: 12px 0;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 10px;
+  border-left: 5px solid #333;
+  background: #f7f7f7;
+}
+.legend { margin-top: 6px; font-size: 14px; }
+.legend span { display:inline-block; margin-right:10px; }
+.dot { width:12px; height:12px; border-radius:50%; display:inline-block; vertical-align:middle; margin-right:4px; }
+.fretboard {
+  overflow-x: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background: white;
+}
+table { border-collapse: collapse; }
 th, td {
-  min-width:72px;
-  height:70px;
-  border:1px solid #aaa;
-  text-align:center;
-  vertical-align:middle;
-  font-size:13px;
+  min-width: 74px;
+  height: 72px;
+  border: 1px solid var(--line);
+  text-align: center;
+  vertical-align: middle;
+  font-size: 13px;
 }
-th { background:#eee; }
-.stringName { background:#f5f5f5; font-weight:bold; }
+th { background: #eee; position: sticky; top: 0; z-index: 2; }
+.stringName {
+  background: #f5f5f5;
+  font-weight: bold;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 78px;
+}
 .hit {
-  color:white;
-  border-radius:50%;
-  display:inline-block;
-  padding:6px 8px;
-  min-width:44px;
-  line-height:1.2;
-  background:#222;
+  color: white;
+  border-radius: 50%;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 8px;
+  min-width: 48px;
+  min-height: 48px;
+  line-height: 1.15;
+  background: var(--dark);
+  white-space: nowrap;
 }
-.root { background:#d62828; }
-.third { background:#2a9d8f; }
-.fifth { background:#457b9d; }
-.seventh { background:#9d4edd; }
-.extension { background:#f77f00; }
-.tag { font-size:11px; opacity:.9; }
+.root { background: var(--root); }
+.third { background: var(--third); }
+.fifth { background: var(--fifth); }
+.seventh { background: var(--seventh); }
+.extension { background: var(--extension); }
+.tag { font-size: 10px; opacity: .95; margin-top: 2px; }
+.small { font-size: 12px; color: #555; }
+@media print {
+  .controls, button, label, select { display:none !important; }
+  body { padding: 4px; }
+  h1 { font-size: 18px; }
+  .info { font-size: 11px; padding: 4px; margin: 4px 0; }
+  .fretboard { overflow: visible; border: none; padding: 0; }
+  th, td { min-width: 38px; height: 42px; font-size: 9px; }
+  .stringName { min-width: 42px; }
+  .hit { min-width: 28px; min-height: 28px; padding: 2px; font-size: 8px; }
+  .tag { font-size: 7px; }
+}
 </style>
 </head>
-
 <body>
+<h1>吉他和弦指板訓練器 v1.0</h1>
 
-<h2>吉他和弦指板訓練器</h2>
-
-<label>Key：</label>
-<select id="root"></select>
-
-<label>模式：</label>
-<select id="mode">
-  <option value="chordTone">Chord Tone 全指板和弦音</option>
-  <option value="triadShape">Triad Shape 三和弦指型</option>
-  <option value="shellChord">Shell Chord 爵士骨架和弦</option>
-  <option value="neoSoul">Neo Soul 指形</option>
-</select>
-
-<label>根音 / 位置弦：</label>
-<select id="rootString">
-  <option value="all">全部</option>
-  <option value="6">第六弦</option>
-  <option value="5">第五弦</option>
-  <option value="4">第四弦</option>
-  <option value="3">第三弦</option>
-</select>
-
-<label>和弦形式：</label>
-<select id="chordType"></select>
+<div class="controls">
+  <div class="control-group"><label for="root">Key</label><select id="root"></select></div>
+  <div class="control-group"><label for="tuning">Tuning</label><select id="tuning"></select></div>
+  <div class="control-group"><label for="mode">模式</label><select id="mode">
+    <option value="chordTone">Chord Tone 全指板和弦音</option>
+    <option value="triadShape">Triad Shape 三和弦</option>
+    <option value="shellChord">Shell Chord 爵士骨架</option>
+    <option value="neoSoul">Neo Soul 指形</option>
+    <option value="caged">CAGED 系統</option>
+    <option value="drop2">Drop 2</option>
+    <option value="drop3">Drop 3</option>
+    <option value="drop24">Drop 2 & 4</option>
+  </select></div>
+  <div class="control-group"><label for="rootString">根音 / 位置弦</label><select id="rootString">
+    <option value="all">全部</option>
+    <option value="6">第六弦</option>
+    <option value="5">第五弦</option>
+    <option value="4">第四弦</option>
+    <option value="3">第三弦</option>
+  </select></div>
+  <div class="control-group"><label for="position">把位</label><select id="position"><option value="all">全部</option></select></div>
+  <div class="control-group"><label for="shapeSelect">指型</label><select id="shapeSelect"><option value="all">全部指型</option></select></div>
+  <div class="control-group"><label for="chordType">和弦形式</label><select id="chordType"></select></div>
+  <div class="control-group"><label for="displayMode">顯示</label><select id="displayMode">
+    <option value="both">音名 + 度數</option>
+    <option value="note">只顯示音名</option>
+    <option value="degree">只顯示度數</option>
+  </select></div>
+  <button type="button" onclick="window.print()">列印 / 匯出 PDF</button>
+  <button type="button" onclick="forceRefresh()">Refresh 重新顯示</button>
+</div>
 
 <div class="info" id="chordInfo"></div>
 <div class="fretboard" id="fretboard"></div>
 
 <script>
 const notes = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-
-const roots = [
-  "C","C# / Db","D","D# / Eb","E","F",
-  "F# / Gb","G","G# / Ab","A","A# / Bb","B"
-];
-
+const roots = ["C","C# / Db","D","D# / Eb","E","F","F# / Gb","G","G# / Ab","A","A# / Bb","B"];
+const tunings = {
+  "Standard 標準 EADGBE": ["E","A","D","G","B","E"],
+  "Drop D DADGBE": ["D","A","D","G","B","E"],
+  "Open G DGDGBD": ["D","G","D","G","B","D"],
+  "Open D DADF#AD": ["D","A","D","F#","A","D"],
+  "Open A EAEAC#E": ["E","A","E","A","C#","E"],
+  "Open E EBEG#BE": ["E","B","E","G#","B","E"]
+};
 const chordTypes = {
   "Major 大三和弦": [0,4,7],
   "Minor 小三和弦": [0,3,7],
@@ -97,77 +181,59 @@ const chordTypes = {
   "11": [0,4,7,10,14,17],
   "13": [0,4,7,10,14,17,21]
 };
-
 const degreeNames = {
-  0:"R", 1:"b2", 2:"2", 3:"b3", 4:"3", 5:"4",
-  6:"b5", 7:"5", 8:"#5", 9:"6", 10:"b7", 11:"7",
-  14:"9", 17:"11", 21:"13"
+  0:"R",1:"b2",2:"2",3:"b3",4:"3",5:"4",6:"b5",7:"5",8:"#5",9:"6",10:"b7",11:"7",14:"9",17:"11",21:"13"
 };
-
-const guitarStrings = [
-  { stringNo:1, name:"1弦 E", note:"E" },
-  { stringNo:2, name:"2弦 B", note:"B" },
-  { stringNo:3, name:"3弦 G", note:"G" },
-  { stringNo:4, name:"4弦 D", note:"D" },
-  { stringNo:5, name:"5弦 A", note:"A" },
-  { stringNo:6, name:"6弦 E", note:"E" }
-];
-
 const neoSoulVoicings = {
   "maj7 大七": [
-    { name:"maj7 6弦根音", strings:[6,4,3,2], intervals:[0,11,4,7] },
-    { name:"maj7 5弦根音", strings:[5,4,3,2], intervals:[0,7,11,4] }
+    { name:"maj7 6R", strings:[6,4,3,2], intervals:[0,11,4,7] },
+    { name:"maj7 5R", strings:[5,4,3,2], intervals:[0,7,11,4] },
+    { name:"maj7 no5", strings:[4,3,2,1], intervals:[0,4,11,14] }
   ],
   "m7 小七": [
-    { name:"m7 6弦根音", strings:[6,4,3,2], intervals:[0,10,3,7] },
-    { name:"m7 5弦根音", strings:[5,4,3,2], intervals:[0,7,10,3] }
+    { name:"m7 6R", strings:[6,4,3,2], intervals:[0,10,3,7] },
+    { name:"m7 5R", strings:[5,4,3,2], intervals:[0,7,10,3] },
+    { name:"m7 no5", strings:[4,3,2,1], intervals:[0,3,10,14] }
   ],
   "m9": [
-    { name:"m9 6弦根音", strings:[6,4,3,2], intervals:[0,10,14,3] },
-    { name:"m9 5弦根音", strings:[5,4,3,2], intervals:[0,10,14,3] }
+    { name:"m9 6R", strings:[6,4,3,2], intervals:[0,10,14,3] },
+    { name:"m9 5R", strings:[5,4,3,2], intervals:[0,10,14,3] },
+    { name:"m9 upper", strings:[4,3,2,1], intervals:[10,14,3,7] }
   ],
   "9": [
-    { name:"9 6弦根音", strings:[6,4,3,2], intervals:[0,10,14,4] },
-    { name:"9 5弦根音", strings:[5,4,3,2], intervals:[0,10,14,4] }
+    { name:"9 6R", strings:[6,4,3,2], intervals:[0,10,14,4] },
+    { name:"9 5R", strings:[5,4,3,2], intervals:[0,10,14,4] }
   ],
   "13": [
-    { name:"13 6弦根音", strings:[6,4,3,2], intervals:[0,10,4,9] },
-    { name:"13 5弦根音", strings:[5,4,3,2], intervals:[0,10,4,9] }
+    { name:"13 6R", strings:[6,4,3,2], intervals:[0,10,4,9] },
+    { name:"13 5R", strings:[5,4,3,2], intervals:[0,10,4,9] }
   ],
   "6": [
-    { name:"6 6弦根音", strings:[6,4,3,2], intervals:[0,9,4,7] },
-    { name:"6 5弦根音", strings:[5,4,3,2], intervals:[0,7,9,4] }
+    { name:"6 6R", strings:[6,4,3,2], intervals:[0,9,4,7] },
+    { name:"6 5R", strings:[5,4,3,2], intervals:[0,7,9,4] }
   ],
   "m6": [
-    { name:"m6 6弦根音", strings:[6,4,3,2], intervals:[0,9,3,7] },
-    { name:"m6 5弦根音", strings:[5,4,3,2], intervals:[0,7,9,3] }
+    { name:"m6 6R", strings:[6,4,3,2], intervals:[0,9,3,7] },
+    { name:"m6 5R", strings:[5,4,3,2], intervals:[0,7,9,3] }
   ]
 };
-
-function normalizeRoot(text) {
-  return text.split(" ")[0];
+function normalizeRoot(text){ return text.split(" ")[0]; }
+function noteIndex(note){ return notes.indexOf(note); }
+function getNoteFrom(root, interval){ return notes[(noteIndex(root) + interval) % 12]; }
+function getFretNote(openNote, fret){ return notes[(noteIndex(openNote) + fret) % 12]; }
+function getDegree(interval){ return degreeNames[interval] || degreeNames[((interval % 12) + 12) % 12] || "?"; }
+function getGuitarStrings() {
+  const lowToHigh = tunings[document.getElementById('tuning').value];
+  return [
+    { stringNo:1, name:`1弦 ${lowToHigh[5]}`, note:lowToHigh[5] },
+    { stringNo:2, name:`2弦 ${lowToHigh[4]}`, note:lowToHigh[4] },
+    { stringNo:3, name:`3弦 ${lowToHigh[3]}`, note:lowToHigh[3] },
+    { stringNo:4, name:`4弦 ${lowToHigh[2]}`, note:lowToHigh[2] },
+    { stringNo:5, name:`5弦 ${lowToHigh[1]}`, note:lowToHigh[1] },
+    { stringNo:6, name:`6弦 ${lowToHigh[0]}`, note:lowToHigh[0] }
+  ];
 }
-
-function noteIndex(note) {
-  return notes.indexOf(note);
-}
-
-function getNoteFrom(root, interval) {
-  return notes[(noteIndex(root) + interval) % 12];
-}
-
-function getFretNote(openNote, fret) {
-  return notes[(noteIndex(openNote) + fret) % 12];
-}
-
-function getDegree(interval) {
-  return degreeNames[interval] || degreeNames[interval % 12] || "?";
-}
-
-function getStringData(stringNo) {
-  return guitarStrings.find(s => s.stringNo === stringNo);
-}
-
+function getStringData(stringNo){ return getGuitarStrings().find(s => s.stringNo === stringNo); }
 function getClass(degree) {
   if (degree === "R") return "root";
   if (degree === "3" || degree === "b3") return "third";
@@ -176,287 +242,268 @@ function getClass(degree) {
   if (["2","9","11","13","6","4"].includes(degree)) return "extension";
   return "";
 }
-
-function populate() {
-  roots.forEach(r => root.innerHTML += `<option value="${r}">${r}</option>`);
-  Object.keys(chordTypes).forEach(c => chordType.innerHTML += `<option value="${c}">${c}</option>`);
+function labelText(note, degree, tag="") {
+  const dm = document.getElementById('displayMode').value;
+  let main = "";
+  if (dm === "note") main = note;
+  else if (dm === "degree") main = degree;
+  else main = `${note}<br>${degree}`;
+  return `${main}${tag ? `<br><span class="tag">${tag}</span>` : ""}`;
 }
-
+function populate() {
+  const root = document.getElementById('root');
+  const tuning = document.getElementById('tuning');
+  const chordType = document.getElementById('chordType');
+  const position = document.getElementById('position');
+  roots.forEach(r => root.innerHTML += `<option value="${r}">${r}</option>`);
+  Object.keys(tunings).forEach(t => tuning.innerHTML += `<option value="${t}">${t}</option>`);
+  Object.keys(chordTypes).forEach(c => chordType.innerHTML += `<option value="${c}">${c}</option>`);
+  for (let i = 0; i <= 24; i++) position.innerHTML += `<option value="${i}">第 ${i} 把位</option>`;
+}
 function findFretsOnString(openNote, targetNote) {
-  let frets = [];
-  for (let f = 0; f <= 24; f++) {
-    if (getFretNote(openNote, f) === targetNote) frets.push(f);
-  }
+  const frets = [];
+  for (let f = 0; f <= 24; f++) if (getFretNote(openNote, f) === targetNote) frets.push(f);
   return frets;
 }
-
 function triadDegrees(intervals) {
   const third = intervals.find(i => i === 3 || i === 4);
   const fifth = intervals.find(i => i === 6 || i === 7 || i === 8);
   if (third === undefined || fifth === undefined) return null;
-
-  return [
-    { interval:0, degree:"R" },
-    { interval:third, degree:getDegree(third) },
-    { interval:fifth, degree:getDegree(fifth) }
-  ];
+  return [{ interval:0, degree:"R" }, { interval:third, degree:getDegree(third) }, { interval:fifth, degree:getDegree(fifth) }];
 }
-
 function shellDegrees(intervals) {
   const third = intervals.find(i => i === 3 || i === 4);
   const seventh = intervals.find(i => i === 10 || i === 11);
   if (third === undefined || seventh === undefined) return null;
-
-  return [
-    { interval:0, degree:"R" },
-    { interval:third, degree:getDegree(third) },
-    { interval:seventh, degree:getDegree(seventh) }
-  ];
+  return [{ interval:0, degree:"R" }, { interval:third, degree:getDegree(third) }, { interval:seventh, degree:getDegree(seventh) }];
 }
-
-function buildShapes(rootNote, shapeType, intervals, rootStringValue) {
-  let baseDegrees;
-  let inversions;
-
-  if (shapeType === "triad") {
-    baseDegrees = triadDegrees(intervals);
-    if (!baseDegrees) return [];
-
-    inversions = [
-      { name:"Root", short:"R.Pos", order:[baseDegrees[0], baseDegrees[1], baseDegrees[2]] },
-      { name:"First", short:"1st", order:[baseDegrees[1], baseDegrees[2], baseDegrees[0]] },
-      { name:"Second", short:"2nd", order:[baseDegrees[2], baseDegrees[0], baseDegrees[1]] }
-    ];
-  }
-
-  if (shapeType === "shell") {
-    baseDegrees = shellDegrees(intervals);
-    if (!baseDegrees) return [];
-
-    inversions = [
-      { name:"Shell A", short:"Shell", order:[baseDegrees[0], baseDegrees[1], baseDegrees[2]] },
-      { name:"Shell B", short:"Inv", order:[baseDegrees[0], baseDegrees[2], baseDegrees[1]] }
-    ];
-  }
-
-  const groups = rootStringValue === "all"
-    ? [6,5,4,3]
-    : [Number(rootStringValue)];
-
-  let shapes = [];
-
-  groups.forEach(lowString => {
-    const strings = [lowString, lowString - 1, lowString - 2];
-    if (strings.some(s => s < 1)) return;
-
-    inversions.forEach(inv => {
+function normalizeShape(shape) {
+  const pressed = shape.notes.map(n => n.fret).filter(f => f > 0);
+  shape.minFret = pressed.length ? Math.min(...pressed) : 0;
+  shape.maxFret = pressed.length ? Math.max(...pressed) : 0;
+  shape.span = pressed.length ? shape.maxFret - shape.minFret : 0;
+  return shape;
+}
+function buildLinearShapes(rootNote, groups, tagList, maxStretch=5) {
+  const shapes = [];
+  groups.forEach(strings => {
+    tagList.forEach(tagObj => {
       const anchorString = getStringData(strings[0]);
-      const anchorNote = getNoteFrom(rootNote, inv.order[0].interval);
+      if (!anchorString) return;
+      const anchorNote = getNoteFrom(rootNote, tagObj.order[0].interval);
       const anchors = findFretsOnString(anchorString.note, anchorNote);
-
       anchors.forEach(anchor => {
-        let shape = [];
+        const shapeNotes = [];
         let valid = true;
-
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < strings.length; i++) {
           const sNo = strings[i];
           const sData = getStringData(sNo);
-          const targetNote = getNoteFrom(rootNote, inv.order[i].interval);
+          const target = tagObj.order[i];
+          if (!sData || !target) { valid = false; break; }
+          const targetNote = getNoteFrom(rootNote, target.interval);
           const possible = findFretsOnString(sData.note, targetNote)
-            .filter(f => Math.abs(f - anchor) <= 5);
-
-          if (!possible.length) {
-            valid = false;
-            break;
-          }
-
-          const fret = possible.sort((a,b) => Math.abs(a-anchor) - Math.abs(b-anchor))[0];
-
-          shape.push({
+            .filter(f => Math.abs(f - anchor) <= maxStretch)
+            .sort((a,b) => Math.abs(a-anchor) - Math.abs(b-anchor) || a - b);
+          if (!possible.length) { valid = false; break; }
+          const fret = possible[0];
+          shapeNotes.push({
             stringNo:sNo,
             fret,
             note:targetNote,
-            degree:inv.order[i].degree,
-            tag:inv.short,
-            className:getClass(inv.order[i].degree)
+            degree:target.degree,
+            tag:tagObj.short,
+            className:getClass(target.degree)
           });
         }
-
         if (valid) {
-          const frets = shape.map(x => x.fret);
-          if (Math.max(...frets) - Math.min(...frets) <= 5) shapes.push(shape);
+          const pressed = shapeNotes.map(x => x.fret).filter(f => f > 0);
+          if (pressed.length === 0 || Math.max(...pressed) - Math.min(...pressed) <= maxStretch) {
+            shapes.push(normalizeShape({ name:tagObj.short, notes:shapeNotes }));
+          }
         }
       });
     });
   });
-
-  return shapes;
+  return removeDuplicateShapes(shapes);
 }
-
+function removeDuplicateShapes(shapes) {
+  const seen = new Set();
+  return shapes.filter(s => {
+    const key = s.notes.map(n => `${n.stringNo}:${n.fret}:${n.degree}`).sort().join('|') + ':' + s.name;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function buildTriadShapes(rootNote, intervals, rootStringValue) {
+  const d = triadDegrees(intervals);
+  if (!d) return [];
+  const lows = rootStringValue === "all" ? [6,5,4,3] : [Number(rootStringValue)];
+  const groups = lows.map(r => [r,r-1,r-2]).filter(g => g.every(x => x >= 1));
+  return buildLinearShapes(rootNote, groups, [
+    { short:"R.Pos", order:[d[0],d[1],d[2]] },
+    { short:"1st", order:[d[1],d[2],d[0]] },
+    { short:"2nd", order:[d[2],d[0],d[1]] }
+  ], 5);
+}
+function buildShellShapes(rootNote, intervals, rootStringValue) {
+  const d = shellDegrees(intervals);
+  if (!d) return [];
+  const lows = rootStringValue === "all" ? [6,5,4] : [Number(rootStringValue)];
+  const groups = lows.map(r => [r,r-1,r-2]).filter(g => g.every(x => x >= 1));
+  return buildLinearShapes(rootNote, groups, [
+    { short:"Shell 1", order:[d[0],d[1],d[2]] },
+    { short:"Shell 2", order:[d[0],d[2],d[1]] }
+  ], 6);
+}
 function buildNeoSoulShapes(rootNote, chordName, rootStringValue) {
   const voicings = neoSoulVoicings[chordName];
   if (!voicings) return [];
-
   let shapes = [];
-
   voicings.forEach(v => {
     if (rootStringValue !== "all" && Number(rootStringValue) !== v.strings[0]) return;
-
-    const anchorString = getStringData(v.strings[0]);
-    const anchorNote = getNoteFrom(rootNote, v.intervals[0]);
-    const anchors = findFretsOnString(anchorString.note, anchorNote);
-
-    anchors.forEach(anchor => {
-      let shape = [];
-      let valid = true;
-
-      for (let i = 0; i < v.strings.length; i++) {
-        const sNo = v.strings[i];
-        const sData = getStringData(sNo);
-        const targetNote = getNoteFrom(rootNote, v.intervals[i]);
-        const possible = findFretsOnString(sData.note, targetNote)
-          .filter(f => Math.abs(f - anchor) <= 5);
-
-        if (!possible.length) {
-          valid = false;
-          break;
-        }
-
-        const fret = possible.sort((a,b) => Math.abs(a-anchor) - Math.abs(b-anchor))[0];
-
-        shape.push({
-          stringNo:sNo,
-          fret,
-          note:targetNote,
-          degree:getDegree(v.intervals[i]),
-          tag:v.name,
-          className:getClass(getDegree(v.intervals[i]))
-        });
-      }
-
-      if (valid) {
-        const frets = shape.map(x => x.fret);
-        if (Math.max(...frets) - Math.min(...frets) <= 5) shapes.push(shape);
-      }
-    });
+    const order = v.intervals.map(i => ({ interval:i, degree:getDegree(i) }));
+    shapes.push(...buildLinearShapes(rootNote, [v.strings], [{ short:v.name, order }], 6));
   });
-
+  return removeDuplicateShapes(shapes);
+}
+function buildDropShapes(rootNote, intervals, type, rootStringValue) {
+  if (intervals.length < 4) return [];
+  const base = intervals.slice(0,4).map(i => ({ interval:i, degree:getDegree(i) }));
+  let order;
+  if (type === "drop2") order = [base[0], base[2], base[1], base[3]];
+  if (type === "drop3") order = [base[1], base[0], base[2], base[3]];
+  if (type === "drop24") order = [base[2], base[0], base[1], base[3]];
+  const lows = rootStringValue === "all" ? [6,5,4] : [Number(rootStringValue)];
+  const groups = lows.map(r => [r,r-1,r-2,r-3]).filter(g => g.every(x => x >= 1));
+  return buildLinearShapes(rootNote, groups, [{ short:type.toUpperCase(), order }], 7);
+}
+function buildCagedShapes(rootNote, intervals, rootStringValue) {
+  const d = triadDegrees(intervals);
+  if (!d) return [];
+  const groups = [
+    { short:"C Shape", strings:[5,4,3,2,1], order:[d[0],d[2],d[0],d[1],d[2]] },
+    { short:"A Shape", strings:[5,4,3,2,1], order:[d[0],d[2],d[0],d[1],d[2]] },
+    { short:"G Shape", strings:[6,5,4,3,2,1], order:[d[0],d[1],d[2],d[0],d[1],d[2]] },
+    { short:"E Shape", strings:[6,5,4,3,2,1], order:[d[0],d[2],d[0],d[1],d[2],d[0]] },
+    { short:"D Shape", strings:[4,3,2,1], order:[d[0],d[2],d[0],d[1]] }
+  ];
+  let shapes = [];
+  groups.forEach(g => {
+    if (rootStringValue !== "all" && Number(rootStringValue) !== g.strings[0]) return;
+    shapes.push(...buildLinearShapes(rootNote, [g.strings], [{ short:g.short, order:g.order }], 7));
+  });
+  return removeDuplicateShapes(shapes);
+}
+function getAllShapes() {
+  const rootNote = normalizeRoot(document.getElementById('root').value);
+  const modeValue = document.getElementById('mode').value;
+  const rootStringValue = document.getElementById('rootString').value;
+  const chordName = document.getElementById('chordType').value;
+  const intervals = chordTypes[chordName];
+  let shapes = [];
+  if (modeValue === "triadShape") shapes = buildTriadShapes(rootNote, intervals, rootStringValue);
+  if (modeValue === "shellChord") shapes = buildShellShapes(rootNote, intervals, rootStringValue);
+  if (modeValue === "neoSoul") shapes = buildNeoSoulShapes(rootNote, chordName, rootStringValue);
+  if (modeValue === "caged") shapes = buildCagedShapes(rootNote, intervals, rootStringValue);
+  if (modeValue === "drop2") shapes = buildDropShapes(rootNote, intervals, "drop2", rootStringValue);
+  if (modeValue === "drop3") shapes = buildDropShapes(rootNote, intervals, "drop3", rootStringValue);
+  if (modeValue === "drop24") shapes = buildDropShapes(rootNote, intervals, "drop24", rootStringValue);
+  const pos = document.getElementById('position').value;
+  if (pos !== "all") {
+    const p = Number(pos);
+    shapes = shapes.filter(s => s.minFret >= p && s.minFret <= p + 4);
+  }
+  shapes.sort((a,b) => a.minFret - b.minFret || a.maxFret - b.maxFret || a.name.localeCompare(b.name));
   return shapes;
 }
-
-function render() {
-  const rootNote = normalizeRoot(root.value);
-  const modeValue = mode.value;
-  const rootStringValue = rootString.value;
-  const chordName = chordType.value;
+function updateShapeSelect(shapes, preserve=true) {
+  const shapeSelect = document.getElementById('shapeSelect');
+  const oldValue = preserve ? shapeSelect.value : "all";
+  shapeSelect.innerHTML = `<option value="all">全部指型</option>`;
+  shapes.forEach((s, i) => {
+    shapeSelect.innerHTML += `<option value="${i}">${i + 1}. ${s.name}｜${s.minFret}-${s.maxFret}格</option>`;
+  });
+  if (preserve && [...shapeSelect.options].some(o => o.value === oldValue)) shapeSelect.value = oldValue;
+  else shapeSelect.value = "all";
+}
+function addShapeToMap(shapeMap, shape) {
+  shape.notes.forEach(n => {
+    const key = `${n.stringNo}-${n.fret}`;
+    if (!shapeMap[key]) shapeMap[key] = [];
+    shapeMap[key].push(n);
+  });
+}
+function render(options={}) {
+  const preserveShape = options.preserveShape !== false;
+  const rootNote = normalizeRoot(document.getElementById('root').value);
+  const modeValue = document.getElementById('mode').value;
+  const chordName = document.getElementById('chordType').value;
   const intervals = chordTypes[chordName];
-
-  const chordNotes = intervals.map(i => ({
-    note:getNoteFrom(rootNote, i),
-    degree:getDegree(i)
-  }));
-
-  let shapeMap = {};
-
-  if (modeValue === "triadShape") {
-    buildShapes(rootNote, "triad", intervals, rootStringValue).forEach(shape => {
-      shape.forEach(n => {
-        const key = `${n.stringNo}-${n.fret}`;
-        if (!shapeMap[key]) shapeMap[key] = [];
-        shapeMap[key].push(n);
-      });
-    });
+  const guitarStrings = getGuitarStrings();
+  const chordNotes = intervals.map(i => ({ note:getNoteFrom(rootNote, i), degree:getDegree(i) }));
+  let shapes = getAllShapes();
+  updateShapeSelect(shapes, preserveShape);
+  const shapeSelect = document.getElementById('shapeSelect');
+  let displayShapes = shapes;
+  if (shapeSelect.value !== "all") {
+    const selected = shapes[Number(shapeSelect.value)];
+    displayShapes = selected ? [selected] : [];
   }
-
-  if (modeValue === "shellChord") {
-    buildShapes(rootNote, "shell", intervals, rootStringValue).forEach(shape => {
-      shape.forEach(n => {
-        const key = `${n.stringNo}-${n.fret}`;
-        if (!shapeMap[key]) shapeMap[key] = [];
-        shapeMap[key].push(n);
-      });
-    });
-  }
-
-  if (modeValue === "neoSoul") {
-    buildNeoSoulShapes(rootNote, chordName, rootStringValue).forEach(shape => {
-      shape.forEach(n => {
-        const key = `${n.stringNo}-${n.fret}`;
-        if (!shapeMap[key]) shapeMap[key] = [];
-        shapeMap[key].push(n);
-      });
-    });
-  }
-
+  const shapeMap = {};
+  displayShapes.forEach(s => addShapeToMap(shapeMap, s));
+  const chordInfo = document.getElementById('chordInfo');
+  const modeText = document.getElementById('mode').options[document.getElementById('mode').selectedIndex].text;
   chordInfo.innerHTML =
     `<b>${rootNote} ${chordName}</b><br>` +
-    `模式：${mode.options[mode.selectedIndex].text}<br>` +
-    `音名：${chordNotes.map(x => x.note).join("、")}<br>` +
-    `首調：${chordNotes.map(x => x.degree).join("、")}<br>` +
-    `範圍：空弦 ～ 第 24 格`;
-
+    `Tuning：${document.getElementById('tuning').value}<br>` +
+    `模式：${modeText}<br>` +
+    `音名：${chordNotes.map(x => x.note).join('、')}<br>` +
+    `首調：${chordNotes.map(x => x.degree).join('、')}<br>` +
+    `指型數量：${modeValue === 'chordTone' ? '全指板顯示' : displayShapes.length + ' / ' + shapes.length}<br>` +
+    `範圍：空弦 ～ 第 24 格` +
+    `<div class="legend"><span><i class="dot root"></i>R</span><span><i class="dot third"></i>3/b3</span><span><i class="dot fifth"></i>5/b5/#5</span><span><i class="dot seventh"></i>7/b7</span><span><i class="dot extension"></i>延伸音</span></div>`;
   let html = `<table><tr><th>弦 / 格</th>`;
-
-  for (let fret = 0; fret <= 24; fret++) {
-    html += `<th>${fret === 0 ? "空弦" : fret}</th>`;
-  }
-
+  for (let fret = 0; fret <= 24; fret++) html += `<th>${fret === 0 ? '空弦' : fret}</th>`;
   html += `</tr>`;
-
   guitarStrings.forEach(str => {
     html += `<tr><td class="stringName">${str.name}</td>`;
-
     for (let fret = 0; fret <= 24; fret++) {
       const key = `${str.stringNo}-${fret}`;
       const note = getFretNote(str.note, fret);
-
       if (modeValue === "chordTone") {
         const match = chordNotes.find(x => x.note === note);
-
         if (match) {
-          html += `
-          <td>
-            <span class="hit ${getClass(match.degree)}">
-              ${note}<br>${match.degree}
-            </span>
-          </td>`;
-        } else {
-          html += `<td></td>`;
-        }
-
+          html += `<td><span class="hit ${getClass(match.degree)}">${labelText(note, match.degree)}</span></td>`;
+        } else html += `<td></td>`;
       } else {
-        if (shapeMap[key]) {
+        if (shapeMap[key] && shapeMap[key].length) {
           const item = shapeMap[key][0];
-
-          html += `
-          <td>
-            <span class="hit ${item.className}">
-              ${item.note}<br>${item.degree}<br>
-              <span class="tag">${item.tag}</span>
-            </span>
-          </td>`;
-        } else {
-          html += `<td></td>`;
-        }
+          html += `<td><span class="hit ${item.className}">${labelText(item.note, item.degree, item.tag)}</span></td>`;
+        } else html += `<td></td>`;
       }
     }
-
     html += `</tr>`;
   });
-
   html += `</table>`;
-  fretboard.innerHTML = html;
+  document.getElementById('fretboard').innerHTML = html;
 }
-
+function forceRefresh() {
+  const currentShape = document.getElementById('shapeSelect').value;
+  render({ preserveShape:false });
+  const shapeSelect = document.getElementById('shapeSelect');
+  if ([...shapeSelect.options].some(o => o.value === currentShape)) {
+    shapeSelect.value = currentShape;
+    render({ preserveShape:true });
+  }
+}
+function safeRenderResetShape() { render({ preserveShape:false }); }
+function safeRenderKeepShape() { render({ preserveShape:true }); }
 populate();
-
-root.addEventListener("change", render);
-mode.addEventListener("change", render);
-rootString.addEventListener("change", render);
-chordType.addEventListener("change", render);
-
-render();
+['root','tuning','mode','rootString','position','chordType'].forEach(id => document.getElementById(id).addEventListener('change', safeRenderResetShape));
+document.getElementById('displayMode').addEventListener('change', safeRenderKeepShape);
+document.getElementById('shapeSelect').addEventListener('change', safeRenderKeepShape);
+render({ preserveShape:false });
 </script>
-
 </body>
 </html>
